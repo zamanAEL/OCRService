@@ -2,6 +2,7 @@ package co.celloscope.ocrservicehost;
 
 import android.app.Service;
 import android.content.Intent;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -14,12 +15,12 @@ import java.util.ArrayList;
 public class OCRService extends Service {
     static final int MSG_REGISTER_CLIENT = 1;
     static final int MSG_UNREGISTER_CLIENT = 2;
-    static final int MSG_SET_VALUE = 3;
+    static final int MSG_DO_OCR = 3;
 
     final Messenger mMessenger = new Messenger(new IncomingHandler());
 
     ArrayList<Messenger> mClients = new ArrayList<Messenger>();
-    int mValue = 0;
+    String mValue = "";
 
     @Override
     public void onCreate() {
@@ -27,7 +28,7 @@ public class OCRService extends Service {
     }
 
     @Override
-    public void onDestroy() { //
+    public void onDestroy() {
         Toast.makeText(this, "Service Destroyed", Toast.LENGTH_SHORT).show();
     }
 
@@ -54,14 +55,20 @@ public class OCRService extends Service {
                 case MSG_UNREGISTER_CLIENT:
                     mClients.remove(msg.replyTo);
                     break;
-                case MSG_SET_VALUE:
-                    mValue = msg.arg1;
+                case MSG_DO_OCR:
+                    mValue = ((Bundle) msg.obj).getString("name");
+                    mValue = (new StringBuilder(mValue)).reverse().toString();
+                    Bundle mBundle = new Bundle();
+                    mBundle.putString("ocrText", mValue);
                     for (int i = mClients.size() - 1; i >= 0; i--) {
                         try {
                             mClients.get(i).send(Message.obtain(null,
-                                    MSG_SET_VALUE, mValue, 0));
+                                    MSG_DO_OCR, mBundle));
                         } catch (RemoteException e) {
                             mClients.remove(i);
+                            Toast.makeText(OCRService.this, e.getMessage(), Toast.LENGTH_LONG).show();
+                        } catch (Exception e) {
+                            Toast.makeText(OCRService.this, e.getMessage(), Toast.LENGTH_LONG).show();
                         }
                     }
                     break;

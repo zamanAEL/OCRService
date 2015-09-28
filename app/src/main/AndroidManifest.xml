@@ -6,7 +6,15 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme">
+        <service android:name=".OCRService">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
 
+                <category android:name="android.intent.category.LAUNCHER" />
+
+                <action android:name="co.celloscope.ocrservicehost.OCRService"/>
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>
